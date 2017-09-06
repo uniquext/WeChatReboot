@@ -68,14 +68,12 @@ public class HttpRequest {
 
     public static String post(String path, JSONObject jsonObject) {
         try {
-            //创建连接
             URL url = new URL(path);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
             connection.setDoInput(true);
             connection.setUseCaches(false);
-//            connection.setInstanceFollowRedirects(false);  重定向处理
             connection.setRequestProperty("Content-Type", "application/json");
             connection.connect();
             DataOutputStream out = new DataOutputStream(connection.getOutputStream());

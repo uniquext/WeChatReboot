@@ -1,6 +1,9 @@
 package com.xtao.wechat;
 
+import com.xtao.wechat.callback.ScanQRCodeCallback;
 import com.xtao.wechat.constant.ApiUrl;
+import com.xtao.wechat.listener.MessageListener;
+import com.xtao.wechat.listener.QRCodeStatusListener;
 import com.xtao.wechat.model.User;
 import com.xtao.wechat.util.HttpRequest;
 import net.sf.json.JSONObject;
@@ -33,14 +36,16 @@ import java.util.Random;
  */
 public class WX {
 
-    private int tip = 0;
-    private String uuid = null;
-    private String sKey = null;
-    private String wxSid = null;
-    private String wxUin = null;
-    private String passTicket = null;
+    public long time;
+
+    public String uuid = null;
+    public String sKey = null;
+    public String wxSid = null;
+    public String wxUin = null;
+    public String passTicket = null;
 
     private User user = null;
+    private JSONObject SyncKey = null;
 
     public static WX getInstance() {
         return WXHolder.single;
@@ -52,7 +57,7 @@ public class WX {
     public void login() {
         getUUID();
         getQRCode();
-        thread.start();
+        qrCodeStatusListener.start();
     }
 
     private WX() {}
@@ -61,11 +66,10 @@ public class WX {
      * 获取UUID绘制登录二维码
      */
     private void getUUID() {
-        System.setProperty ("jsse.enableSNIExtension", "false");
         String result = HttpRequest.get(ApiUrl.SESSION_UUID.getReference() + System.currentTimeMillis());
         JSONObject jsonObject = JSONObject.fromObject("{" + result + "}");
         if (jsonObject.getInt("window.QRLogin.code") == 200){
-            this.uuid =  jsonObject.getString("window.QRLogin.uuid");
+            uuid =  jsonObject.getString("window.QRLogin.uuid");
         }
     }
 
@@ -79,23 +83,11 @@ public class WX {
         } catch (IOException e) {
             throw new IllegalStateException("二维码保存失败");
         }
-        HttpRequest.get(ApiUrl.VERIFY_QR_CODE.getReference() + this.uuid, path);
+        HttpRequest.get(ApiUrl.VERIFY_QR_CODE.getReference() + uuid, path);
         System.out.println("### 二维码保存成功！请打开图片扫码登录");
     }
 
-    /**
-     * 获取扫码结果
-     * @return 扫码结果
-     */
-    private String getScanResult() {
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("loginicon", "true");
-        params.put("uuid", this.uuid);
-        params.put("tip", String.valueOf(tip));
-        params.put("r", String.valueOf(~System.currentTimeMillis()));
-        params.put("_", String.valueOf(System.currentTimeMillis()));
-        return HttpRequest.get(ApiUrl.IS_SCAN_QR_CODE.getUrl(), params);
-    }
+
 
     /**
      * 初始化微信
@@ -104,6 +96,8 @@ public class WX {
     private void init(String redirect_uri) {
         setGlobalParams(redirect_uri);
         getInfo();
+        MessageListener messageListener = new MessageListener(SyncKey);
+        messageListener.start();
     }
 
     /**
@@ -129,7 +123,7 @@ public class WX {
     private void getInfo() {
         Random random = new Random();
         random.nextInt();
-        String url = ApiUrl.INFO.getUrl() + "?r=" + (~System.currentTimeMillis()) + "&lang=zh_CN&pass_ticket=" + passTicket;
+        String url = ApiUrl.INFO.getUrl() + "?r=" + (~System.currentTimeMillis()) + "&pass_ticket=" + passTicket;
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("Uin", wxUin);
         jsonObject.put("Sid", wxSid);
@@ -140,6 +134,8 @@ public class WX {
         String result = HttpRequest.post(url, param);
         JSONObject jsonResult = JSONObject.fromObject(result);
         JSONObject user = jsonResult.getJSONObject("User");
+        this.SyncKey = jsonResult.getJSONObject("SyncKey");
+        System.out.println("### SyncKey " + this.SyncKey);
         try {
             this.user = new User(user);
             System.out.println("### 欢迎您 " + this.user.getNickName());
@@ -149,40 +145,27 @@ public class WX {
     }
 
     /**
-     * 轮询
+     * 二维码扫描结果轮询
      */
-    private Thread thread = new Thread(new Runnable() {
-        public void run() {
-            int code;
-            JSONObject jsonObject;
-            while (true) {
-                jsonObject = JSONObject.fromObject("{" + getScanResult() + "}");
-                code = jsonObject.getInt("window.code");
-                switch (code) {
-                    case 200:   //  确认登录
-                        System.out.println("### 确认登录");
-                        init(jsonObject.getString("window.redirect_uri"));
-                        return;
-                    case 201:   //  扫描成功
-                        System.out.println("### 扫码成功");
-                        // TODO: 2017/9/5  此时能获取到用户头像，字段为window.userAvatar，如有需求自行处理
-                        try {
-                            tip = 1;
-                            Thread.sleep(25 * 1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        break;
-                    case 408:   //  登陆超时
-                        System.out.println("### 登陆超时");
-                        tip = 1;
-                        break;
-                    default:
-                        tip = 0;
-                        getQRCode();
-                }
-            }
+    private QRCodeStatusListener qrCodeStatusListener = new QRCodeStatusListener(new ScanQRCodeCallback() {
+
+        public void onWait(String userAvatar) {
+            System.out.println("### 扫码成功");
         }
+
+        public void onTimeout() {
+            System.out.println("### 登陆超时");
+        }
+
+        public void onSuccess(String redirectUri) {
+            System.out.println("### 确认登录");
+            init(redirectUri);
+        }
+
+        public void onError() {
+            getQRCode();
+        }
+
     });
 
     private static class WXHolder {
