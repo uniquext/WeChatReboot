@@ -1,6 +1,7 @@
 package com.xtao.wechat.listener;
 
 import com.xtao.wechat.WX;
+import com.xtao.wechat.callback.NewMessageCallback;
 import com.xtao.wechat.constant.ApiUrl;
 import com.xtao.wechat.util.HttpRequest;
 import net.sf.json.JSONArray;
@@ -33,25 +34,48 @@ public class MessageListener extends Thread {
 
     private volatile boolean exit = false;
 
+    // TODO: 2017/9/7 下一步需要发送并更新key
     private JSONObject synckey = null;
+    private NewMessageCallback messageCallback = null;
 
-    public MessageListener(JSONObject object) {
+    public MessageListener(JSONObject object, NewMessageCallback callback) {
         this.synckey = object;
+        this.messageCallback = callback;
     }
 
     @Override
     public void run() {
         while (!exit) {
             try {
-                System.out.println(syncCheck());
-                Thread.sleep(25 * 1000);
+                switch (syncCheck()) {
+                    case -1:
+                        messageCallback.onError();
+                        break;
+                    case 0:
+                        break;
+                    case 1:
+                        messageCallback.onReceive(null);
+                        break;
+                    case 2:
+                        messageCallback.onChat();
+                        break;
+                    default:
+                        break;
+                }
+                Thread.sleep(20 * 1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private String syncCheck() {
+    /**
+     * 消息检查返回码 格式 window.synccheck={retcode:"0",selector:"0"}
+     * retcode = 0 正常；retcode = 1002 cookie失效
+     * selector = 0 正常； selector = 2 新消息； selector = 7 进入/退出聊天界面
+     * @return 转义消息码
+     */
+    private int syncCheck() {
         Map<String, String> params = new HashMap<String, String>();
         params.put("r", String.valueOf(System.currentTimeMillis()));
         params.put("skey", WX.getInstance().sKey);
@@ -60,7 +84,20 @@ public class MessageListener extends Thread {
         params.put("deviceid", "e" + String.valueOf(Math.random()).substring(2));
         params.put("synckey", getSyncKeyStr());
         params.put("_", String.valueOf(++ WX.getInstance().time));
-        return HttpRequest.get(ApiUrl.MessageCheck.getUrl(), params);
+        String response = HttpRequest.get(ApiUrl.MessageCheck.getUrl(), params);
+
+        System.out.println(response);
+
+        JSONObject result = JSONObject.fromObject(response.substring(response.indexOf('{')));
+        if (!result.getString("retcode").equals("0"))
+            return -1;
+        else if (result.getString("selector").equals("0"))
+            return 0;
+        else if (result.getString("selector").equals("2"))
+            return 1;
+        else if (result.getString("selector").equals("7"))
+            return 2;
+        return -1;
     }
 
     private String getSyncKeyStr() {
@@ -83,15 +120,4 @@ selector:
     7 进入/离开聊天界面
      */
 
-//1_649892050|2_649892070|3_649892073|11_649892060|13_649420029|201_1504711998|203_1504710657|1000_1504696643   |1001_1504693293|1004_1504696643
-    /**
-     *
-     * 	r=时间戳（ms）
-     skey=xxx
-     sid=xxx
-     uin=xxx
-     deviceid=xxx
-     synckey=1_654585659%7C2_654585745%7C3_654585673%7C1000_1467162721
-     _=1467184052133
-     */
 }

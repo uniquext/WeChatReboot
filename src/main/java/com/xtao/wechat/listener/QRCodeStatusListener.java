@@ -58,7 +58,7 @@ public class QRCodeStatusListener extends Thread {
                         tip = 1;
                         // TODO: 2017/9/5  此时能获取到用户头像，字段为window.userAvatar，如有需求自行处理
                         scanQRCodeCallback.onWait(jsonObject.getString("window.userAvatar"));
-                        Thread.sleep(10 * 1000);
+                        Thread.sleep(8 * 1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

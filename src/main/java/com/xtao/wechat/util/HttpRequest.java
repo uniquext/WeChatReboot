@@ -1,11 +1,13 @@
 package com.xtao.wechat.util;
 
+import com.xtao.wechat.WX;
 import net.sf.json.JSONObject;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,10 +30,30 @@ import java.util.Map;
  */
 public class HttpRequest {
 
+    private static StringBuilder sessions = new StringBuilder();
+
+    private static void setSessionID(String session) {
+        sessions.append(session).append(";");
+    }
+
+    private static String getSessionID() {
+        return sessions.toString();
+    }
+
     public static String get(String path) {
         try {
             URL url = new URL(path);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestProperty("Cookie", sessions.toString());
+            connection.setRequestProperty("Connection", "keep-alive");
+            connection.connect();
+            List<String> list = connection.getHeaderFields().get("Set-Cookie");
+            if (list != null) {
+                for (String cookie : list) {
+                    sessions.append(cookie.substring(0, cookie.indexOf(";") + 1));
+//                    setSessionID(cookie.substring(0, cookie.indexOf(";")));
+                }
+            }
             if(connection.getResponseCode() == 200){
                 return new String(readInputStream(connection.getInputStream()));
             }
@@ -48,9 +70,8 @@ public class HttpRequest {
      * 获取文件
      * @param path  url
      * @param filePath  文件路径，默认保存当前工程根目录
-     * @return 文件
      */
-    public static File get(String path, String filePath) {
+    public static void get(String path, String filePath) {
         try {
             URL url = new URL(path);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -63,13 +84,13 @@ public class HttpRequest {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
     }
 
     public static String post(String path, JSONObject jsonObject) {
         try {
             URL url = new URL(path);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestProperty("Cookie", sessions.toString());
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
             connection.setDoInput(true);

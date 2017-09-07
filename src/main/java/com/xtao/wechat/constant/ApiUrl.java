@@ -39,8 +39,7 @@ public enum ApiUrl {
     MessageCheck(
             "https://webpush.wx.qq.com/cgi-bin/mmwebwx-bin/synccheck",
             "https://webpush.wx.qq.com/cgi-bin/mmwebwx-bin/synccheck?r=1504716369087&skey=%40crypt_6dea96f0_b492ecd74fdfc829c1c4fd40aa5ffed1&sid=%2FyBet%2BzwWWwzV8Tf&uin=2822019321&deviceid=e401714103231374&synckey=1_649892050%7C2_649892078%7C3_649892073%7C1000_1504696643&_=1504716346347"
-    //       https://webpush.wx.qq.com/cgi-bin/mmwebwx-bin/synccheck?r=1504716476144&skey=%40crypt_6dea96f0_b492ecd74fdfc829c1c4fd40aa5ffed1&sid=%2FyBet%2BzwWWwzV8Tf&uuid=gdssmVhEAA==&deviceid=e401714103231374&synckey=1_649892050%7C2_649892078%7C3_649892073%7C1000_1504696643&_=1504716450050
-    );
+     );
 
     private String url;
 

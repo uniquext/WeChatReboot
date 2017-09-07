@@ -1,9 +1,5 @@
 package com.xtao.wechat;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Hello world!
  *
@@ -11,12 +7,9 @@ import java.util.Map;
 public class App 
 {
 
-
-
     public static void main(String[] args) throws Exception {
         System.setProperty ("jsse.enableSNIExtension", "false");
         WX.getInstance().login();
-
     }
 
 }

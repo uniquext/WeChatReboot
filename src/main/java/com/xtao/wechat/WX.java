@@ -1,11 +1,14 @@
 package com.xtao.wechat;
 
+import com.xtao.wechat.callback.NewMessageCallback;
 import com.xtao.wechat.callback.ScanQRCodeCallback;
 import com.xtao.wechat.constant.ApiUrl;
 import com.xtao.wechat.listener.MessageListener;
 import com.xtao.wechat.listener.QRCodeStatusListener;
+import com.xtao.wechat.model.Msg;
 import com.xtao.wechat.model.User;
 import com.xtao.wechat.util.HttpRequest;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import java.io.File;
@@ -55,6 +58,8 @@ public class WX {
      * 登录
      */
     public void login() {
+        System.out.println("##########################################");
+        System.out.println("### 这里是微信智障机器人");
         getUUID();
         getQRCode();
         qrCodeStatusListener.start();
@@ -96,7 +101,19 @@ public class WX {
     private void init(String redirect_uri) {
         setGlobalParams(redirect_uri);
         getInfo();
-        MessageListener messageListener = new MessageListener(SyncKey);
+        MessageListener messageListener = new MessageListener(SyncKey, new NewMessageCallback() {
+            public void onReceive(Msg msg) {
+                System.out.println("### 您有新的未读消息");
+            }
+
+            public void onChat() {
+                // TODO: 2017/9/7 进入/退出聊天界面
+            }
+
+            public void onError() {
+                System.out.println("### 系统异常退出");
+            }
+        });
         messageListener.start();
     }
 
@@ -135,7 +152,6 @@ public class WX {
         JSONObject jsonResult = JSONObject.fromObject(result);
         JSONObject user = jsonResult.getJSONObject("User");
         this.SyncKey = jsonResult.getJSONObject("SyncKey");
-        System.out.println("### SyncKey " + this.SyncKey);
         try {
             this.user = new User(user);
             System.out.println("### 欢迎您 " + this.user.getNickName());
@@ -150,7 +166,7 @@ public class WX {
     private QRCodeStatusListener qrCodeStatusListener = new QRCodeStatusListener(new ScanQRCodeCallback() {
 
         public void onWait(String userAvatar) {
-            System.out.println("### 扫码成功");
+            System.out.println("### 扫码成功，等待确认...");
         }
 
         public void onTimeout() {
@@ -158,7 +174,7 @@ public class WX {
         }
 
         public void onSuccess(String redirectUri) {
-            System.out.println("### 确认登录");
+            System.out.println("### 已确认，正在登录...");
             init(redirectUri);
         }
 
