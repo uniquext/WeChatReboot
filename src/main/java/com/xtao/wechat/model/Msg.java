@@ -21,4 +21,42 @@ package com.xtao.wechat.model;
  * @description
  */
 public class Msg {
+
+    private int mType;
+    private String mFrom;
+    private String mContent;
+
+    public Msg() {
+
+    }
+
+    public Msg(String from, String content) {
+        mType = 1;  //  默认文本类型
+        mFrom = from;
+        mContent = content;
+    }
+
+    public String getFrom() {
+        return mFrom;
+    }
+
+    public void setFrom(String mFrom) {
+        this.mFrom = mFrom;
+    }
+
+    public String getContent() {
+        return mContent;
+    }
+
+    public void setContent(String mContent) {
+        this.mContent = mContent;
+    }
+
+    public int getType() {
+        return mType;
+    }
+
+    public void setType(int mType) {
+        this.mType = mType;
+    }
 }

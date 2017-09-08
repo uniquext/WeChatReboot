@@ -25,5 +25,5 @@ import com.xtao.wechat.model.Msg;
 public interface NewMessageCallback {
     void onReceive(Msg msg);
     void onChat();
-    void onError();
+    void onError(int code);
 }

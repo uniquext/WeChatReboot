@@ -39,7 +39,15 @@ public enum ApiUrl {
     MessageCheck(
             "https://webpush.wx.qq.com/cgi-bin/mmwebwx-bin/synccheck",
             "https://webpush.wx.qq.com/cgi-bin/mmwebwx-bin/synccheck?r=1504716369087&skey=%40crypt_6dea96f0_b492ecd74fdfc829c1c4fd40aa5ffed1&sid=%2FyBet%2BzwWWwzV8Tf&uin=2822019321&deviceid=e401714103231374&synckey=1_649892050%7C2_649892078%7C3_649892073%7C1000_1504696643&_=1504716346347"
-     );
+     ),
+    NEW_MESSAGE(
+            "https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsync",
+            "https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsync?sid=7zpkixo841FAhQ/C&skey=@crypt_6dea96f0_e0f53525924b6ca1cf65cb45cd390858&pass_ticket=H0LFhI%252BqoV135fhb2EfYFxJNIBpagw1G7BimSrv%252Bwj9dvyf7ykkTW%252BCke27gf1kR"
+    ),
+    SEND_MESSAGE(
+            "https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg",
+            "https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg?pass_ticket=H0LFhI%252BqoV135fhb2EfYFxJNIBpagw1G7BimSrv%252Bwj9dvyf7ykkTW%252BCke27gf1kR"
+    );
 
     private String url;
 

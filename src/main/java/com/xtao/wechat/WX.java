@@ -49,6 +49,7 @@ public class WX {
 
     private User user = null;
     private JSONObject SyncKey = null;
+    private String redirectUri = null;
 
     public static WX getInstance() {
         return WXHolder.single;
@@ -96,25 +97,14 @@ public class WX {
 
     /**
      * 初始化微信
-     * @param redirect_uri  重定向地址
      */
-    private void init(String redirect_uri) {
-        setGlobalParams(redirect_uri);
+    private void init() {
+        setGlobalParams(redirectUri);
         getInfo();
-        MessageListener messageListener = new MessageListener(SyncKey, new NewMessageCallback() {
-            public void onReceive(Msg msg) {
-                System.out.println("### 您有新的未读消息");
-            }
-
-            public void onChat() {
-                // TODO: 2017/9/7 进入/退出聊天界面
-            }
-
-            public void onError() {
-                System.out.println("### 系统异常退出");
-            }
-        });
-        messageListener.start();
+        if (!messageListener.isAlive()) {
+            messageListener.setSyncKey(SyncKey);
+            messageListener.start();
+        }
     }
 
     /**
@@ -173,9 +163,10 @@ public class WX {
             System.out.println("### 登陆超时");
         }
 
-        public void onSuccess(String redirectUri) {
+        public void onSuccess(String uri) {
             System.out.println("### 已确认，正在登录...");
-            init(redirectUri);
+            redirectUri = uri;
+            init();
         }
 
         public void onError() {
@@ -183,6 +174,26 @@ public class WX {
         }
 
     });
+
+    /**
+     * 消息监听
+     */
+    private MessageListener messageListener = new MessageListener(new NewMessageCallback() {
+        public void onReceive(Msg msg) {
+            System.out.println("### " + msg.getFrom());
+            System.out.println("### " + msg.getContent());
+        }
+
+        public void onChat() {
+            // TODO: 2017/9/7 进入/退出聊天界面
+        }
+
+        public void onError(int code) {
+            System.out.println("### 系统异常退出" + code);
+            init();
+        }
+    });
+
 
     private static class WXHolder {
         private static WX single = new WX();
