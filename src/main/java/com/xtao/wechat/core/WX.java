@@ -1,4 +1,4 @@
-package com.xtao.wechat;
+package com.xtao.wechat.core;
 
 import com.xtao.wechat.callback.NewMessageCallback;
 import com.xtao.wechat.callback.ScanQRCodeCallback;
@@ -8,13 +8,10 @@ import com.xtao.wechat.listener.QRCodeStatusListener;
 import com.xtao.wechat.model.Msg;
 import com.xtao.wechat.model.User;
 import com.xtao.wechat.util.HttpRequest;
-import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 /**
@@ -101,6 +98,7 @@ public class WX {
     private void init() {
         setGlobalParams(redirectUri);
         getInfo();
+        refreshNotify();
         if (!messageListener.isAlive()) {
             messageListener.setSyncKey(SyncKey);
             messageListener.start();
@@ -128,16 +126,14 @@ public class WX {
      * 此处只筛选用户信息
      */
     private void getInfo() {
-        Random random = new Random();
-        random.nextInt();
         String url = ApiUrl.INFO.getUrl() + "?r=" + (~System.currentTimeMillis()) + "&pass_ticket=" + passTicket;
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("Uin", wxUin);
-        jsonObject.put("Sid", wxSid);
-        jsonObject.put("Skey", sKey);
-        jsonObject.put("DeviceID", "e" + String.valueOf(Math.random()).substring(2));
         JSONObject param = new JSONObject();
-        param.put("BaseRequest", jsonObject);
+        JSONObject BaseRequest = new JSONObject();
+        BaseRequest.put("Uin", wxUin);
+        BaseRequest.put("Sid", wxSid);
+        BaseRequest.put("Skey", sKey);
+        BaseRequest.put("DeviceID", "e" + String.valueOf(Math.random()).substring(2));
+        param.put("BaseRequest", BaseRequest);
         String result = HttpRequest.post(url, param);
         JSONObject jsonResult = JSONObject.fromObject(result);
         JSONObject user = jsonResult.getJSONObject("User");
@@ -148,6 +144,51 @@ public class WX {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 刷新消息状态
+     */
+    private void refreshNotify() {
+        final String url = ApiUrl.REFRESH_NOTIFY.getUrl() + "?lang=zh_CN&pass_ticket=" + WX.getInstance().passTicket;
+        JSONObject param = new JSONObject();
+        JSONObject BaseRequest = new JSONObject();
+        BaseRequest.put("Uin", WX.getInstance().wxUin);
+        BaseRequest.put("Sid", WX.getInstance().wxSid);
+        BaseRequest.put("Skey", WX.getInstance().sKey);
+        BaseRequest.put("DeviceID", "e" + String.valueOf(Math.random()).substring(2));
+        param.put("BaseRequest", BaseRequest);
+        param.put("Code", 3);
+        param.put("FromUserName", user.getUserName());
+        param.put("ToUserName", user.getUserName());
+        param.put("ClientMsgId", System.currentTimeMillis());
+        HttpRequest.post(url, param);
+    }
+
+    private void sendMsg(String to, String content) {
+        JSONObject param = new JSONObject();
+        String url = ApiUrl.SEND_MESSAGE.getUrl() + "?lang=zh_CN&pass_ticket=" + passTicket;
+        String timestamp = String.valueOf(System.currentTimeMillis()).substring(0, 13) + String.valueOf(Math.random()).substring(2, 6);
+
+        JSONObject BaseRequest = new JSONObject();
+        BaseRequest.put("Uin", WX.getInstance().wxUin);
+        BaseRequest.put("Sid", WX.getInstance().wxSid);
+        BaseRequest.put("Skey", WX.getInstance().sKey);
+        BaseRequest.put("DeviceID", "e" + String.valueOf(Math.random()).substring(2));
+
+        JSONObject Msg = new JSONObject();
+        Msg.put("Type", 1);
+        Msg.put("Content", content);
+        Msg.put("FromUserName", user.getUserName());
+        Msg.put("ToUserName", to);
+        Msg.put("LocalID", timestamp);
+        Msg.put("ClientMsgId", timestamp);
+
+        param.put("BaseRequest", BaseRequest);
+        param.put("Msg", Msg);
+        param.put("Scene", 0);
+        HttpRequest.post(url, param);
+
     }
 
     /**
@@ -182,6 +223,13 @@ public class WX {
         public void onReceive(Msg msg) {
             System.out.println("### " + msg.getFrom());
             System.out.println("### " + msg.getContent());
+            if (msg.getFrom().contains("@@")) {
+                //  群消息，做@判断，@对象为群昵称
+                System.out.println("### 群消息");
+            } else if (msg.getFrom().contains("@")) {
+                System.out.println("### 私聊消息");
+                sendMsg(msg.getFrom(), msg.getContent());
+            }
         }
 
         public void onChat() {

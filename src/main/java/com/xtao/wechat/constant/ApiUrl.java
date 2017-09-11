@@ -44,6 +44,10 @@ public enum ApiUrl {
             "https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsync",
             "https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsync?sid=7zpkixo841FAhQ/C&skey=@crypt_6dea96f0_e0f53525924b6ca1cf65cb45cd390858&pass_ticket=H0LFhI%252BqoV135fhb2EfYFxJNIBpagw1G7BimSrv%252Bwj9dvyf7ykkTW%252BCke27gf1kR"
     ),
+    REFRESH_NOTIFY(
+            "https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxstatusnotify",
+            "https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxstatusnotify?lang=zh_CN&pass_ticket=hzO%252FJlodtOLeZ5eedHOfd%252FuBjIIAlFXqu2yojOaq%252BGaKZsqm6cuZTuPoJw1gZZ4V"
+    ),
     SEND_MESSAGE(
             "https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg",
             "https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg?pass_ticket=H0LFhI%252BqoV135fhb2EfYFxJNIBpagw1G7BimSrv%252Bwj9dvyf7ykkTW%252BCke27gf1kR"

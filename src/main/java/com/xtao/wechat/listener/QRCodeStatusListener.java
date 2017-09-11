@@ -1,6 +1,6 @@
 package com.xtao.wechat.listener;
 
-import com.xtao.wechat.WX;
+import com.xtao.wechat.core.WX;
 import com.xtao.wechat.callback.ScanQRCodeCallback;
 import com.xtao.wechat.constant.ApiUrl;
 import com.xtao.wechat.util.HttpRequest;

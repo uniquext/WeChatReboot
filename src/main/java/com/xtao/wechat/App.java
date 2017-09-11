@@ -1,5 +1,7 @@
 package com.xtao.wechat;
 
+import com.xtao.wechat.core.WX;
+
 /**
  * Hello world!
  *
