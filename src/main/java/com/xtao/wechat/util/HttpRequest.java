@@ -49,11 +49,10 @@ public class HttpRequest {
             if (list != null) {
                 for (String cookie : list) {
                     sessions.append(cookie.substring(0, cookie.indexOf(";") + 1));
-//                    setSessionID(cookie.substring(0, cookie.indexOf(";")));
                 }
             }
             if(connection.getResponseCode() == 200){
-                return new String(readInputStream(connection.getInputStream()));
+                return new String(readInputStream(connection.getInputStream()), "utf-8");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -90,16 +89,18 @@ public class HttpRequest {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestProperty("Cookie", sessions.toString());
             connection.setRequestMethod("POST");
+            connection.setRequestProperty("Charset", "UTF-8");
+            connection.setRequestProperty("Content-Type","application/json;charset=UTF-8");
             connection.setDoOutput(true);
             connection.setDoInput(true);
             connection.setUseCaches(false);
-            connection.setRequestProperty("Content-Type", "application/json");
             connection.connect();
             DataOutputStream out = new DataOutputStream(connection.getOutputStream());
-            out.writeBytes(jsonObject.toString());
+//            out.writeBytes(jsonObject.toString());
+            out.write(jsonObject.toString().getBytes("UTF-8"));
             out.flush();
             out.close();
-            return new String(readInputStream(connection.getInputStream()));
+            return new String(readInputStream(connection.getInputStream()), "utf-8");
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -60,7 +60,6 @@ public class MessageListener extends Thread {
                         JSONArray msgList = response.getJSONArray("AddMsgList");
                         for (int i = 0; i < msgList.size(); ++ i) {
                             String from = msgList.getJSONObject(i).getString("FromUserName");
-                            String to = msgList.getJSONObject(i).getString("ToUserName");
                             String content = msgList.getJSONObject(i).getString("Content");
                             messageCallback.onReceive(new Msg(from, content));
                         }

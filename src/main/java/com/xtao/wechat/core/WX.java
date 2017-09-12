@@ -12,7 +12,6 @@ import net.sf.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Random;
 
 /**
  * 　 　　   へ　　　 　／|
@@ -37,6 +36,7 @@ import java.util.Random;
 public class WX {
 
     public long time;
+    private Reboot reboot = Reboot.getInstance();
 
     public String uuid = null;
     public String sKey = null;
@@ -227,8 +227,10 @@ public class WX {
                 //  群消息，做@判断，@对象为群昵称
                 System.out.println("### 群消息");
             } else if (msg.getFrom().contains("@")) {
-                System.out.println("### 私聊消息");
-                sendMsg(msg.getFrom(), msg.getContent());
+                String user = msg.getFrom();
+                String content = msg.getContent();
+                if (!content.equals(""))
+                    sendMsg(user, reboot.talk(user, content));
             }
         }
 
