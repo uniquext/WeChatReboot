@@ -166,6 +166,7 @@ public class WX {
     }
 
     private void sendMsg(String to, String content) {
+        System.out.println("To:" + content);
         JSONObject param = new JSONObject();
         String url = ApiUrl.SEND_MESSAGE.getUrl() + "?lang=zh_CN&pass_ticket=" + passTicket;
         String timestamp = String.valueOf(System.currentTimeMillis()).substring(0, 13) + String.valueOf(Math.random()).substring(2, 6);
@@ -188,7 +189,6 @@ public class WX {
         param.put("Msg", Msg);
         param.put("Scene", 0);
         HttpRequest.post(url, param);
-
     }
 
     /**
@@ -221,16 +221,17 @@ public class WX {
      */
     private MessageListener messageListener = new MessageListener(new NewMessageCallback() {
         public void onReceive(Msg msg) {
-            System.out.println("### " + msg.getFrom());
-            System.out.println("### " + msg.getContent());
-            if (msg.getFrom().contains("@@")) {
+            String user = msg.getFrom();
+            String content = msg.getContent();
+            if (content.equals(""))
+                return;
+            System.out.println("### " + user);
+            System.out.println("### " + content);
+            if (user.contains("@@")) {
                 //  群消息，做@判断，@对象为群昵称
                 System.out.println("### 群消息");
-            } else if (msg.getFrom().contains("@")) {
-                String user = msg.getFrom();
-                String content = msg.getContent();
-                if (!content.equals(""))
-                    sendMsg(user, reboot.talk(user, content));
+            } else if (user.contains("@")) {
+                sendMsg(user, reboot.talk(user, content));
             }
         }
 
